@@ -2,6 +2,10 @@
 
 A bash shell script that orchestrates autonomous development sessions using Kilocode AI.
 
+## Specifications
+
+AutoK uses project specifications in Markdown format aligned with Spernakit template standards. All specs are located in the `specs/` directory with `.md` extensions.
+
 ## Usage
 
 ```bash
@@ -10,7 +14,7 @@ A bash shell script that orchestrates autonomous development sessions using Kilo
 
 ### Required Arguments
 - `--project-dir`: Target project directory
-- `--spec`: Specification file to copy to project-dir/.autok/spec.txt
+- `--spec`: Specification file (.md) to copy to project-dir/.autok/spec.txt
 
 ### Optional Arguments
 - `--max-iterations`: Number of iterations to run (unlimited if not specified)
@@ -32,7 +36,7 @@ The script runs in a loop based on max-iterations:
 ## Example
 
 ```bash
-./autok.sh --project-dir ../auto-test --max-iterations 1 --spec ./specs/heystack.txt --timeout 6000
+./autok.sh --project-dir ../autok-test --max-iterations 1 --spec ./specs/heystack.md --timeout 6000
 ```
 
 ## Prompts Used
@@ -47,5 +51,5 @@ Both prompts are executed from within the project directory to ensure proper con
 A PowerShell version (`autok.ps1`) is also available with the same functionality:
 
 ```powershell
-./autok.ps1 -ProjectDir "../auto-test" -MaxIterations 1 -Spec "./specs/heystack.txt" -Timeout 6000
+./autok.ps1 -ProjectDir "../autok-test" -MaxIterations 10 -Spec "./specs/heystack.md"
 ```

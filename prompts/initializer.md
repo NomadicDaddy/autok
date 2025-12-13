@@ -11,26 +11,26 @@ Do NOT write any application code. Only create the setup files listed below.
 
 **Strategic Workflow Orchestration:**
 
--   Coordinate complex development workflows across multiple modes
--   Delegate to specialized modes using new_task (Architect/Code/Debug/Ask/Orchestrator)
--   Track progress using update_todo_list
--   Switch between operational modes using switch_mode
+- Coordinate complex development workflows across multiple modes
+- Delegate to specialized modes using new_task (Architect/Code/Debug/Ask/Orchestrator)
+- Track progress using update_todo_list
+- Switch between operational modes using switch_mode
 
 **Development Tools:**
 
--   execute_command: Execute shell commands and scripts
--   read_file: Read and analyze project specifications and existing files
--   write_to_file: Create and modify files with complete content
--   apply_diff: Make surgical edits to existing files
--   search_files: Perform regex searches across project files
--   list_files: Explore project structure and organization
--   list_code_definition_names: Analyze source code architecture
+- execute_command: Execute shell commands and scripts
+- read_file: Read and analyze project specifications and existing files
+- write_to_file: Create and modify files with complete content
+- apply_diff: Make surgical edits to existing files
+- search_files: Perform regex searches across project files
+- list_files: Explore project structure and organization
+- list_code_definition_names: Analyze source code architecture
 
 **Mode Coordination:**
 
--   switch_mode: Transition between Architect/Code/Debug/Ask/Orchestrator modes
--   new_task: Create new task instances with specialized modes
--   attempt_completion: Present results when tasks are complete
+- switch_mode: Transition between Architect/Code/Debug/Ask/Orchestrator modes
+- new_task: Create new task instances with specialized modes
+- attempt_completion: Present results when tasks are complete
 
 ### FIRST: Read the Project Specification
 
@@ -71,13 +71,13 @@ Based on `.autok/spec.txt`, create a file called `.autok/feature_list.json` with
 
 **Requirements for .autok/feature_list.json:**
 
--   Minimum 20 features total with testing steps for each
--   Both "functional" and "style" categories
--   Mix of narrow tests (2-5 steps) and comprehensive tests (10+ steps)
--   At least 2-5 tests MUST have 10+ steps each
--   Order features by priority: fundamental features first
--   ALL tests start with "passes": false
--   Cover every feature in the spec exhaustively
+- Minimum 20 features total with testing steps for each
+- Both "functional" and "style" categories
+- Mix of narrow tests (2-5 steps) and comprehensive tests (10+ steps)
+- At least 2-5 tests MUST have 10+ steps each
+- Order features by priority: fundamental features first
+- ALL tests start with "passes": false
+- Cover every feature in the spec exhaustively
 
 **CRITICAL INSTRUCTION:**
 IT IS CATASTROPHIC TO REMOVE OR EDIT FEATURES IN FUTURE SESSIONS.
@@ -99,9 +99,9 @@ Base the script on the technology stack specified in `.autok/spec.txt`.
 
 Create a git repository and make your first commit with:
 
--   .autok/feature_list.json (complete with all 20 features)
--   scripts/setup.sh (environment setup script)
--   README.md (project overview and setup instructions)
+- .autok/feature_list.json (complete with all 20 features)
+- scripts/setup.sh (environment setup script)
+- README.md (project overview and setup instructions)
 
 Commit message: "Initial setup: .autok/feature_list.json, scripts/setup.sh, and project structure"
 

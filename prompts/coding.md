@@ -10,27 +10,27 @@ and utilize comprehensive tool capabilities to accomplish development objectives
 
 **Multi-Mode Coordination:**
 
--   Switch between Architect/Code/Debug/Ask/Orchestrator modes as needed
--   Delegate tasks to specialized modes using new_task
--   Coordinate workflows across different expertise areas
+- Switch between Architect/Code/Debug/Ask/Orchestrator modes as needed
+- Delegate tasks to specialized modes using new_task
+- Coordinate workflows across different expertise areas
 
 **Development Tools:**
 
--   execute_command: Execute shell commands and scripts
--   read_file: Read and analyze source code and documentation
--   write_to_file: Create and modify files with complete content
--   apply_diff: Make surgical edits to existing files
--   search_files: Perform regex searches across project files
--   list_files: Explore project structure and organization
--   list_code_definition_names: Analyze source code architecture
--   file operations: Create, read, update, delete files and directories
+- execute_command: Execute shell commands and scripts
+- read_file: Read and analyze source code and documentation
+- write_to_file: Create and modify files with complete content
+- apply_diff: Make surgical edits to existing files
+- search_files: Perform regex searches across project files
+- list_files: Explore project structure and organization
+- list_code_definition_names: Analyze source code architecture
+- file operations: Create, read, update, delete files and directories
 
 **Workflow Management:**
 
--   update_todo_list: Track progress and manage task lists
--   new_task: Create new task instances with specialized modes
--   switch_mode: Transition between operational modes
--   attempt_completion: Present results when tasks are complete
+- update_todo_list: Track progress and manage task lists
+- new_task: Create new task instances with specialized modes
+- switch_mode: Transition between operational modes
+- attempt_completion: Present results when tasks are complete
 
 ### STEP 1: GET YOUR BEARINGS (MANDATORY)
 
@@ -91,17 +91,17 @@ For example, if this were a chat app, you should perform a test that logs into t
 
 **If you find ANY issues (functional or visual):**
 
--   Mark that feature as "passes": false immediately
--   Add issues to a list
--   Fix all issues BEFORE moving to new features
--   This includes UI bugs like:
-    -   White-on-white text or poor contrast
-    -   Random characters displayed
-    -   Incorrect timestamps
-    -   Layout issues or overflow
-    -   Buttons too close together
-    -   Missing hover states
-    -   Console errors
+- Mark that feature as "passes": false immediately
+- Add issues to a list
+- Fix all issues BEFORE moving to new features
+- This includes UI bugs like:
+    - White-on-white text or poor contrast
+    - Random characters displayed
+    - Incorrect timestamps
+    - Layout issues or overflow
+    - Buttons too close together
+    - Missing hover states
+    - Console errors
 
 ### STEP 4: CHOOSE ONE FEATURE TO IMPLEMENT
 
@@ -133,17 +133,17 @@ Use execute_command to navigate and test:
 
 **DO:**
 
--   Test through the UI with clicks and keyboard input
--   Take screenshots to verify visual appearance
--   Check for console errors in browser
--   Verify complete user workflows end-to-end
+- Test through the UI with clicks and keyboard input
+- Take screenshots to verify visual appearance
+- Check for console errors in browser
+- Verify complete user workflows end-to-end
 
 **DON'T:**
 
--   Only test with curl commands (backend testing alone is insufficient)
--   Use shortcuts that bypass UI testing
--   Skip visual verification
--   Mark tests passing without thorough verification
+- Only test with curl commands (backend testing alone is insufficient)
+- Use shortcuts that bypass UI testing
+- Skip visual verification
+- Mark tests passing without thorough verification
 
 ### STEP 7: UPDATE .autok/feature_list.json (CAREFULLY!)
 
@@ -163,11 +163,11 @@ to:
 
 **NEVER:**
 
--   Remove tests
--   Edit test descriptions
--   Modify test steps
--   Combine or consolidate tests
--   Reorder tests
+- Remove tests
+- Edit test descriptions
+- Modify test steps
+- Combine or consolidate tests
+- Reorder tests
 
 **ONLY CHANGE "passes" FIELD AFTER VERIFICATION WITH SCREENSHOTS.**
 
@@ -190,11 +190,11 @@ git commit -m "Implement [feature name] - verified end-to-end
 
 Update `.autok/progress.txt` with:
 
--   What you accomplished this session
--   Which test(s) you completed
--   Any issues discovered or fixed
--   What should be worked on next
--   Current completion status (e.g., "45/200 tests passing")
+- What you accomplished this session
+- Which test(s) you completed
+- Any issues discovered or fixed
+- What should be worked on next
+- Current completion status (e.g., "45/200 tests passing")
 
 ### STEP 10: END SESSION CLEANLY
 
@@ -215,10 +215,10 @@ Before context fills up:
 
 Available tools:
 
--   execute_command: Run browser automation scripts
--   read_file: Analyze test results and logs
--   write_to_file: Create test scripts and verification documentation
--   search_files: Find relevant test files and documentation
+- execute_command: Run browser automation scripts
+- read_file: Analyze test results and logs
+- write_to_file: Create test scripts and verification documentation
+- search_files: Find relevant test files and documentation
 
 Test like a human user with mouse and keyboard. Don't take shortcuts that bypass comprehensive UI testing.
 
@@ -234,10 +234,10 @@ Test like a human user with mouse and keyboard. Don't take shortcuts that bypass
 
 **Quality Bar:**
 
--   Zero console errors
--   Polished UI matching the design specified in .autok/spec.txt
--   All features work end-to-end through the UI
--   Fast, responsive, professional
+- Zero console errors
+- Polished UI matching the design specified in .autok/spec.txt
+- All features work end-to-end through the UI
+- Fast, responsive, professional
 
 **You have unlimited time.** Take as long as needed to get it right. The most important thing is that you
 leave the code base in a clean state before terminating the session (Step 10).
