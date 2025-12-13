@@ -154,6 +154,20 @@ If `bun` is not available, or the project uses a different runtime, run the equi
 
 Otherwise, start servers manually using execute_command and document the process.
 
+#### Important: avoid hanging the session on long-running commands
+
+Commands like `bun run dev`, `npm run dev`, and many server start scripts are long-running and will not exit on their own.
+
+- Prefer starting servers in a way that returns immediately (background/detached), then proceed to UI verification with `browser_action`.
+- If you accidentally start a long-running command in the foreground, stop it with Ctrl+C, then restart it in a detached/background way.
+
+Use one of these **explicit detached launch wrappers** (recommended). They work even when your current shell is ambiguous (e.g. MINGW64/Git Bash):
+
+- `pwsh -NoProfile -Command "Start-Process bun -ArgumentList 'run','dev'"`
+- `cmd.exe /c start "" /b bun run dev`
+
+Do **not** run `bun run dev` in the foreground, and do **not** rely on `start /b bun run dev` unless you are definitely in cmd.exe.
+
 If setup/start commands fail due to missing or malformed config files, immediately inspect the referenced config with `read_file`, compare against the expected structure (often `backend/src/config/defaults.json`), fix the config, then rerun setup.
 
 If you need to create/repair a config file:

@@ -145,7 +145,9 @@ This ensures no functionality is missed.
 
 ### SECOND TASK: Create scripts/setup.ts
 
-If a `scripts/setup.ts` file does not exist, create one that initializes the development environment:
+If a `scripts/setup.ts` file alerady exists, skip this task.
+
+Otherwise, create one that initializes the development environment:
 
 1. Install any required dependencies
 2. Validate prerequisites (ports, env vars, required binaries) and create any required local config files
@@ -189,7 +191,7 @@ Before your context fills up:
 **DO NOT IMPLEMENT ANY FEATURES**
 **DO NOT WRITE APPLICATION CODE**
 **DO NOT START SERVERS**
-**STOP AFTER CREATING .autok/feature_list.json AND scripts/setup.ts**
+**STOP AFTER CREATING .autok/feature_list.json AND scripts/setup.ts (if needed)**
 
 The next agent will continue from here with a fresh context window and will have access to your multi-mode coordination capabilities.
 
@@ -197,4 +199,4 @@ The next agent will continue from here with a fresh context window and will have
 
 **Remember:** You have unlimited time across many sessions. Focus on quality over speed. Production-ready is the goal.
 
-**FINAL INSTRUCTION:** After saving .autok/feature_list.json and scripts/setup.ts, STOP. Do nothing else.
+**FINAL INSTRUCTION:** After saving .autok/feature_list.json and scripts/setup.ts (if needed), STOP. Do nothing else.
