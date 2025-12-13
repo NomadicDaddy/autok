@@ -5,23 +5,62 @@ This is a FRESH context window - you have no memory of previous sessions.
 
 ### TOOL AVAILABILITY (READ FIRST)
 
-Kilo Code CLI provides a fixed set of tools (see https://kilo.ai/docs/features/tools/tool-use-overview). Only instruct yourself to use tools that are actually available in the current session.
+Kilo Code CLI provides a fixed set of tools. Only instruct yourself to use tools that are actually available:
+
+## Tool Groups
+
+| Group    | Tools                                                                              | Purpose            |
+| -------- | ---------------------------------------------------------------------------------- | ------------------ |
+| Read     | read_file, search_files, list_files, list_code_definition_names                    | Code exploration   |
+| Edit     | apply_diff, delete_file, write_to_file                                             | File modifications |
+| Browser  | browser_action                                                                     | Web automation     |
+| Command  | execute_command                                                                    | System commands    |
+| MCP      | use_mcp_tool, access_mcp_resource                                                  | External services  |
+| Workflow | switch_mode, new_task, ask_followup_question, attempt_completion, update_todo_list | Task management    |
+
+## Always Available
+
+- ask_followup_question
+- attempt_completion
+- switch_mode
+- new_task
+- update_todo_list
+
+## Mode-Based Access
+
+- Code Mode: Full access to all tools
+- Ask Mode: Read tools only, no file modifications
+- Architect Mode: Design tools, limited execution
+
+## Tool Usage Rules
+
+- Tool names are exact and case-sensitive
+- Use execute_command without cwd parameter for workspace default
+- Prefer explicit cwd set to project root for all commands
+- If tool unavailable, use execute_command as fallback
+- Never invent tool names - only use those listed here
+
+## Common Patterns
+
+- Information: ask_followup_question → read_file → search_files
+- Code changes: read_file → apply_diff → attempt_completion
+- Tasks: new_task → switch_mode → execute_command
+- Progress: update_todo_list → execute_command → update_todo_list
 
 - If a tool is unavailable, fall back to `execute_command` (shell), adjust the workflow, or document what you could not do.
 - Do not assume bash is available; use commands appropriate for the active shell (PowerShell/cmd/bash).
-- The definitive tool list is in `autok/prompts/tools.txt`. Only reference and use those tool names; do not invent new tools.
+- Tool names are exact and case-sensitive (e.g. use `delete_file`, not `deleteFile`).
 - When using `execute_command`, never pass a `cwd` value of `null`/`"null"`. If you want the workspace default working directory, **omit `cwd` entirely**.
-
-As a strategic workflow orchestrator, you can coordinate complex development workflows, delegate to specialized modes,
-and utilize comprehensive tool capabilities to accomplish development objectives efficiently.
+- Once you identify the project root, prefer running all `execute_command` calls with an explicit `cwd` set to that project root.
+- Prefer using `read_file` / `write_to_file` / `apply_diff` / `delete_file` for file operations. Avoid using shell built-ins like `del`/`copy` unless you cannot accomplish the same reliably with the tools.
 
 ### CORE CAPABILITIES AVAILABLE TO YOU:
 
-**Multi-Mode Coordination:**
+**Strategic Workflow Orchestration:**
 
-- Switch between Architect/Code/Debug/Ask/Orchestrator modes as needed
-- Delegate tasks to specialized modes using new_task
-- Coordinate workflows across different expertise areas
+- Coordinate complex development workflows across multiple modes
+- Delegate to specialized modes using new_task (Architect/Code/Debug/Ask/Orchestrator)
+- Switch between operational modes using switch_mode
 
 **Development Tools:**
 
@@ -38,8 +77,8 @@ and utilize comprehensive tool capabilities to accomplish development objectives
 
 **Workflow Management:**
 
+- switch_mode: Transition between Architect/Code/Debug/Ask/Orchestrator modes
 - new_task: Create new task instances with specialized modes
-- switch_mode: Transition between operational modes
 - ask_followup_question: Ask a clarifying question when required
 - attempt_completion: Present results when tasks are complete
 
@@ -50,12 +89,16 @@ Start by orienting yourself:
 #### Step 1: Gather baseline state
 
 - Use `list_files` / `search_files` / `read_file` to locate and inspect `.autok/spec.txt`.
+- Record the directory that contains `.autok/spec.txt` as your **project root**.
+- Use that project root as the `cwd` for all subsequent `execute_command` calls.
+
+Sanity check: after selecting the project root, `list_files` at that path should show expected entries (e.g. `.autok/`, `backend/`, `frontend/`, `scripts/`). If `list_files` shows `0 items` unexpectedly, stop and re-check the path (use `search_files` again or confirm with `execute_command`).
 
 Prefer tool-based inspection (`read_file`, `list_files`, `search_files`) for reliability across shells. Use `execute_command` only when the information cannot be obtained via tools (e.g. git, starting servers).
 
 If you do use `execute_command`, adapt to your shell and avoid brittle pipelines.
 
-**Example (bash/zsh):**
+**Example (bash/zsh)** (only if you are definitely in bash/zsh):
 
 ```bash
 pwd
@@ -111,6 +154,14 @@ If `bun` is not available, or the project uses a different runtime, run the equi
 
 Otherwise, start servers manually using execute_command and document the process.
 
+If setup/start commands fail due to missing or malformed config files, immediately inspect the referenced config with `read_file`, compare against the expected structure (often `backend/src/config/defaults.json`), fix the config, then rerun setup.
+
+If you need to create/repair a config file:
+
+- Prefer `read_file` on the source-of-truth defaults and `write_to_file` to fully overwrite the target config.
+- If you must delete a corrupted file first, use `delete_file` (not an unknown tool name and not a shell `del`).
+- Do not attempt to paste huge JSON blobs into `execute_command` one-liners (PowerShell here-strings are easy to get wrong); use `write_to_file` instead.
+
 ### STEP 3: VERIFICATION TEST (CRITICAL!)
 
 **MANDATORY BEFORE NEW WORK:**
@@ -147,6 +198,7 @@ It's ok if you only complete one feature in this session, as there will be more 
 Implement the chosen feature thoroughly:
 
 1. Write the code (frontend and/or backend as needed) using read_file, write_to_file, apply_diff
+    - After any `apply_diff` or `write_to_file`, immediately `read_file` the edited file to confirm the final content is correct (especially JSON).
 2. Test manually using browser automation (see Step 6)
 3. Fix any issues discovered
 4. Verify the feature works end-to-end

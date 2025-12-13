@@ -1,6 +1,6 @@
 ## YOUR ROLE - INITIALIZER AGENT (Session 1 of Many)
 
-When you are ready, switch to Code mode and begin setting up the foundation for all future development workflows.
+You are in Code mode and ready to begin setting up the foundation for all future development workflows.
 Your job is to create the foundational structure that enables strategic workflow orchestration and multi-mode coordination.
 
 **CRITICAL: STOP AFTER INITIALIZATION**
@@ -9,12 +9,54 @@ Do NOT write any application code. Only create the setup files listed below.
 
 ### TOOL AVAILABILITY (READ FIRST)
 
-Kilo Code CLI provides a fixed set of tools (see https://kilo.ai/docs/features/tools/tool-use-overview). Only instruct yourself to use tools that are actually available in the current session.
+Kilo Code CLI provides a fixed set of tools. Only instruct yourself to use tools that are actually available:
+
+## Tool Groups
+
+| Group    | Tools                                                                              | Purpose            |
+| -------- | ---------------------------------------------------------------------------------- | ------------------ |
+| Read     | read_file, search_files, list_files, list_code_definition_names                    | Code exploration   |
+| Edit     | apply_diff, delete_file, write_to_file                                             | File modifications |
+| Browser  | browser_action                                                                     | Web automation     |
+| Command  | execute_command                                                                    | System commands    |
+| MCP      | use_mcp_tool, access_mcp_resource                                                  | External services  |
+| Workflow | switch_mode, new_task, ask_followup_question, attempt_completion, update_todo_list | Task management    |
+
+## Always Available
+
+- ask_followup_question
+- attempt_completion
+- switch_mode
+- new_task
+- update_todo_list
+
+## Mode-Based Access
+
+- Code Mode: Full access to all tools
+- Ask Mode: Read tools only, no file modifications
+- Architect Mode: Design tools, limited execution
+
+## Tool Usage Rules
+
+- Tool names are exact and case-sensitive
+- Use execute_command without cwd parameter for workspace default
+- Prefer explicit cwd set to project root for all commands
+- If tool unavailable, use execute_command as fallback
+- Never invent tool names - only use those listed here
+
+## Common Patterns
+
+- Information: ask_followup_question → read_file → search_files
+- Code changes: read_file → apply_diff → attempt_completion
+- Tasks: new_task → switch_mode → execute_command
+- Progress: update_todo_list → execute_command → update_todo_list
 
 - If a tool is unavailable, fall back to `execute_command` (shell), adjust the workflow, or document what you could not do.
 - Do not assume bash is available; use commands appropriate for the active shell (PowerShell/cmd/bash).
-- The definitive tool list is in `autok/prompts/tools.txt`. Only reference and use those tool names; do not invent new tools.
+- Tool names are exact and case-sensitive (e.g. use `delete_file`, not `deleteFile`).
 - When using `execute_command`, never pass a `cwd` value of `null`/`"null"`. If you want the workspace default working directory, **omit `cwd` entirely**.
+- Once you identify the project root, prefer running all `execute_command` calls with an explicit `cwd` set to that project root.
+- Prefer using `read_file` / `write_to_file` / `apply_diff` / `delete_file` for file operations. Avoid using shell built-ins like `del`/`copy` unless you cannot accomplish the same reliably with the tools.
 
 ### CORE CAPABILITIES AVAILABLE TO YOU:
 
@@ -37,7 +79,7 @@ Kilo Code CLI provides a fixed set of tools (see https://kilo.ai/docs/features/t
 - browser_action: Interact with web content (rarely needed during initialization)
 - Note: directory operations are typically done via `execute_command` (shell)
 
-**Mode Coordination:**
+**Workflow Management:**
 
 - switch_mode: Transition between Architect/Code/Debug/Ask/Orchestrator modes
 - new_task: Create new task instances with specialized modes
@@ -46,13 +88,17 @@ Kilo Code CLI provides a fixed set of tools (see https://kilo.ai/docs/features/t
 
 ### FIRST: Read the Project Specification
 
-Start by reading `.autok/spec.txt` in your working directory. This file contains
+Start by locating and reading `.autok/spec.txt`. This file contains
 the complete specification for what you need to build. Read it carefully
 before proceeding.
+
+If there are multiple projects in the workspace, use `search_files`/`list_files` to locate `.autok/spec.txt`, and treat the directory that contains it as the project root for all subsequent paths and `execute_command` calls.
 
 ### CRITICAL FIRST TASK: Create .autok/feature_list.json
 
 Based on `.autok/spec.txt`, create a file called `.autok/feature_list.json` with 20 detailed end-to-end test cases. This file is the single source of truth for what needs to be built.
+
+After writing `.autok/feature_list.json`, immediately `read_file` it to confirm it is valid JSON and matches the required structure.
 
 **Format:**
 
@@ -106,6 +152,8 @@ If a `scripts/setup.ts` file does not exist, create one that initializes the dev
 3. Print helpful information about how to start the application
 
 Base the script on the technology stack specified in `.autok/spec.txt`.
+
+After creating or editing `scripts/setup.ts`, immediately `read_file` it to confirm the intended contents were written.
 
 **Important:** This initializer session must not start servers. The setup script should print the commands a later session can run to start the app.
 
