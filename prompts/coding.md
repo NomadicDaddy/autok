@@ -9,6 +9,8 @@ Kilo Code CLI provides a fixed set of tools (see https://kilo.ai/docs/features/t
 
 - If a tool is unavailable, fall back to `execute_command` (shell), adjust the workflow, or document what you could not do.
 - Do not assume bash is available; use commands appropriate for the active shell (PowerShell/cmd/bash).
+- The definitive tool list is in `autok/prompts/tools.txt`. Only reference and use those tool names; do not invent new tools.
+- When using `execute_command`, never pass a `cwd` value of `null`/`"null"`. If you want the workspace default working directory, **omit `cwd` entirely**.
 
 As a strategic workflow orchestrator, you can coordinate complex development workflows, delegate to specialized modes,
 and utilize comprehensive tool capabilities to accomplish development objectives efficiently.
@@ -45,7 +47,13 @@ and utilize comprehensive tool capabilities to accomplish development objectives
 
 Start by orienting yourself:
 
-Run these using `execute_command`, adapting to your shell.
+#### Step 1: Gather baseline state
+
+- Use `list_files` / `search_files` / `read_file` to locate and inspect `.autok/spec.txt`.
+
+Prefer tool-based inspection (`read_file`, `list_files`, `search_files`) for reliability across shells. Use `execute_command` only when the information cannot be obtained via tools (e.g. git, starting servers).
+
+If you do use `execute_command`, adapt to your shell and avoid brittle pipelines.
 
 **Example (bash/zsh):**
 
@@ -66,13 +74,24 @@ Get-Location
 Get-ChildItem -Force
 Get-Content .autok/spec.txt
 Get-Content .autok/feature_list.json -TotalCount 50
-Get-Content .autok/progress.txt
+# If progress.txt doesn't exist yet, create it later rather than failing the session.
+if (Test-Path .autok/progress.txt) { Get-Content .autok/progress.txt }
+
+# Git may not be initialized yet; record and continue if this fails.
 git log --oneline -20
-(Select-String -Path .autok/feature_list.json -Pattern '"passes": false').Count
+
+# Avoid bash/cmd pipeline quirks; use PowerShell-native counting.
+(Select-String -Path .autok/feature_list.json -Pattern '"passes"\s*:\s*false').Count
 ```
 
 Understanding the `.autok/spec.txt` is critical - it contains the full requirements
 for the application you're building.
+
+**Reliability notes (based on prior session failures):**
+
+- Avoid `find`/`grep`/`findstr | find` mixtures on Windows (Git Bash vs cmd vs PowerShell differences can cause incorrect results or permission errors).
+- Prefer `search_files` to count occurrences like `"passes": false` instead of shell pipelines.
+- If `.autok/progress.txt` is missing, create it during Step 9.
 
 ### STEP 2: START SERVERS (IF NOT RUNNING)
 
@@ -197,6 +216,8 @@ git commit -m "Implement [feature name] - verified end-to-end" \
 ```
 
 If your shell does not support line continuations (`\`), run the same command as a single line or use multiple `-m` flags without continuations.
+
+If `git` reports “not a git repository”, do not force commits. Document the state and proceed with feature work; initialize git only if the repo/spec expects it.
 
 ### STEP 9: UPDATE PROGRESS NOTES
 

@@ -13,6 +13,8 @@ Kilo Code CLI provides a fixed set of tools (see https://kilo.ai/docs/features/t
 
 - If a tool is unavailable, fall back to `execute_command` (shell), adjust the workflow, or document what you could not do.
 - Do not assume bash is available; use commands appropriate for the active shell (PowerShell/cmd/bash).
+- The definitive tool list is in `autok/prompts/tools.txt`. Only reference and use those tool names; do not invent new tools.
+- When using `execute_command`, never pass a `cwd` value of `null`/`"null"`. If you want the workspace default working directory, **omit `cwd` entirely**.
 
 ### CORE CAPABILITIES AVAILABLE TO YOU:
 
@@ -131,7 +133,7 @@ This typically includes directories for frontend, backend, and any other compone
 Before your context fills up:
 
 1. Commit all work with descriptive messages using execute_command
-2. Create `.autok/progress.txt` with a summary of what you accomplished
+2. Create `.autok/progress.txt` with a summary of what you accomplished (create it if missing)
 3. Ensure .autok/feature_list.json is complete and saved
 4. Leave the environment in a clean state
 5. Use attempt_completion to present final results
