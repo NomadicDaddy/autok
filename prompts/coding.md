@@ -7,8 +7,6 @@ This is a FRESH context window - you have no memory of previous sessions.
 
 Kilo Code CLI provides a fixed set of tools. Only instruct yourself to use tools that are actually available:
 
-## Tool Groups
-
 | Group    | Tools                                                                              | Purpose            |
 | -------- | ---------------------------------------------------------------------------------- | ------------------ |
 | Read     | read_file, search_files, list_files, list_code_definition_names                    | Code exploration   |
@@ -18,26 +16,14 @@ Kilo Code CLI provides a fixed set of tools. Only instruct yourself to use tools
 | MCP      | use_mcp_tool, access_mcp_resource                                                  | External services  |
 | Workflow | switch_mode, new_task, ask_followup_question, attempt_completion, update_todo_list | Task management    |
 
-## Always Available
+## Usage
 
-- ask_followup_question
-- attempt_completion
-- switch_mode
-- new_task
-- update_todo_list
-
-## Mode-Based Access
-
-- Code Mode: Full access to all tools
-- Ask Mode: Read tools only, no file modifications
-- Architect Mode: Design tools, limited execution
-
-## Tool Usage Rules
-
-- Tool names are exact and case-sensitive
-- Use execute_command without cwd parameter for workspace default
-- Prefer explicit cwd set to project root for all commands
-- If tool unavailable, use execute_command as fallback
+- If a tool is unavailable, fall back to `execute_command` (shell), adjust the workflow, or document what you could not do.
+- Do not assume bash is available; use commands appropriate for the active shell (PowerShell/cmd/bash).
+- Tool names are exact and case-sensitive (e.g. use `delete_file`, not `deleteFile`).
+- When using `execute_command`, never pass a `cwd` value of `null`/`"null"`. If you want the workspace default working directory, **omit `cwd` entirely**.
+- Once you identify the project root, prefer running all `execute_command` calls with an explicit `cwd` set to that project root.
+- Prefer using `read_file` / `write_to_file` / `apply_diff` / `delete_file` for file operations. Avoid using shell built-ins like `del`/`copy` unless you cannot accomplish the same reliably with the tools.
 - Never invent tool names - only use those listed here
 
 ## Common Patterns
@@ -47,40 +33,89 @@ Kilo Code CLI provides a fixed set of tools. Only instruct yourself to use tools
 - Tasks: new_task → switch_mode → execute_command
 - Progress: update_todo_list → execute_command → update_todo_list
 
-- If a tool is unavailable, fall back to `execute_command` (shell), adjust the workflow, or document what you could not do.
-- Do not assume bash is available; use commands appropriate for the active shell (PowerShell/cmd/bash).
-- Tool names are exact and case-sensitive (e.g. use `delete_file`, not `deleteFile`).
-- When using `execute_command`, never pass a `cwd` value of `null`/`"null"`. If you want the workspace default working directory, **omit `cwd` entirely**.
-- Once you identify the project root, prefer running all `execute_command` calls with an explicit `cwd` set to that project root.
-- Prefer using `read_file` / `write_to_file` / `apply_diff` / `delete_file` for file operations. Avoid using shell built-ins like `del`/`copy` unless you cannot accomplish the same reliably with the tools.
+## FILE EDITING BEST PRACTICES (CRITICAL)
 
-### CORE CAPABILITIES AVAILABLE TO YOU:
+**Prevent file corruption and data loss with these mandatory steps:**
 
-**Strategic Workflow Orchestration:**
+### 1. Before ANY Edit:
 
-- Coordinate complex development workflows across multiple modes
-- Delegate to specialized modes using new_task (Architect/Code/Debug/Ask/Orchestrator)
-- Switch between operational modes using switch_mode
+- ALWAYS `read_file` immediately before editing to get current content
+- For files >100 lines or schema files, prefer `write_to_file` over `apply_diff`
+- Understand the full file structure before making changes
 
-**Development Tools:**
+### 2. During Editing:
 
-- execute_command: Execute shell commands and scripts
-- read_file: Read and analyze source code and documentation
-- write_to_file: Create or overwrite files with complete content
-- apply_diff: Make surgical edits to existing files
-- delete_file: Remove files from the workspace
-- search_files: Perform regex searches across project files
-- list_files: Explore project structure and organization
-- list_code_definition_names: Analyze source code architecture
-- browser_action: Interact with web content for UI verification
-- Note: directory operations are typically done via `execute_command` (shell)
+- **For small changes (1-20 lines):** Use `apply_diff` with explicit context
+- **For large changes or schema files:** Use `write_to_file` with complete content
+- **For JSON files:** Use `write_to_file` to prevent parsing errors
+- Include sufficient context in `apply_diff` (minimum 3 lines before/after)
 
-**Workflow Management:**
+### 3. After ANY Edit:
 
-- switch_mode: Transition between Architect/Code/Debug/Ask/Orchestrator modes
-- new_task: Create new task instances with specialized modes
-- ask_followup_question: Ask a clarifying question when required
-- attempt_completion: Present results when tasks are complete
+- IMMEDIATELY `read_file` to verify the edit was applied correctly
+- Check for: duplicates, missing content, malformed syntax
+- If corruption detected: restore from git checkpoint before retrying
+
+### 4. Rollback Procedure:
+
+```bash
+# If file is corrupted after editing:
+git checkout -- <file-path>
+# Then retry with a different approach (e.g., write_to_file instead of apply_diff)
+```
+
+### 5. Special Cases:
+
+- **Schema files:** Always use `write_to_file` for model changes
+- **Configuration files:** Use `write_to_file` to preserve structure
+- **Multiple related edits:** Use `multi_edit` for atomic changes
+- **Large files:** Break into smaller, targeted edits
+
+**WARNING:** Skipping verification steps leads to catastrophic data loss and session failure.
+
+### STEP 0: VALIDATE SPEC COMPLIANCE (NEW MANDATORY STEP)
+
+**CRITICAL: Before proceeding, validate that the codebase structure matches the spec requirements.**
+
+This prevents the catastrophic issue where the implementation diverges from the specification (e.g., building a user management dashboard when the spec requires a todo list).
+
+**Validation Checklist:**
+
+1. **Core Models Verification:**
+    - Read `.autok/spec.txt` to identify required data models (e.g., Todo, User, Tag)
+    - Check `schema.prisma` or equivalent for these models
+    - Verify NO duplicate models or commented-out code blocks exist
+    - Ensure schema compiles without errors
+
+2. **Route Structure Verification:**
+    - Identify required API endpoints from the spec
+    - Verify route files exist and match spec requirements
+    - Check for missing core functionality (e.g., todo CRUD operations)
+
+3. **Feature List Alignment:**
+    - Cross-reference `.autok/feature_list.json` with the spec
+    - Ensure ALL major spec features have corresponding tests
+    - Flag any features marked as "passes": true that aren't implemented
+
+4. **Critical Failure Handling:**
+    - If core models are missing: STOP and report the mismatch
+    - If schema has duplicates: Clean up before proceeding
+    - If feature list is inaccurate: Mark all unimplemented features as "passes": false
+
+**Example Validation Commands:**
+
+```bash
+# Check schema for required models (example for todo app)
+grep -E "model (Todo|Task|Item)" schema.prisma
+
+# Verify no duplicates in schema
+sort schema.prisma | uniq -d
+
+# Check route files match spec requirements
+ls -la backend/src/routes/
+```
+
+**If validation fails, document the issues and do NOT proceed with new features.**
 
 ### STEP 1: GET YOUR BEARINGS (MANDATORY)
 
@@ -103,6 +138,11 @@ pwd
 ls -la
 cat .autok/spec.txt
 head -50 .autok/feature_list.json
+# Create progress.txt if missing - initialize with session info
+if [ ! -f .autok/progress.txt ]; then
+  echo "PROGRESS TRACKING INITIALIZED: $(date)" > .autok/progress.txt
+  echo "Session start: New context window" >> .autok/progress.txt
+fi
 cat .autok/progress.txt
 git log --oneline -20
 grep '"passes": false' .autok/feature_list.json | wc -l
@@ -115,8 +155,12 @@ Get-Location
 Get-ChildItem -Force
 Get-Content .autok/spec.txt
 Get-Content .autok/feature_list.json -TotalCount 50
-# If progress.txt doesn't exist yet, create it later rather than failing the session.
-if (Test-Path .autok/progress.txt) { Get-Content .autok/progress.txt }
+# Create progress.txt if missing - initialize with session info
+if (-not (Test-Path .autok/progress.txt)) {
+  "PROGRESS TRACKING INITIALIZED: $(Get-Date)" | Out-File .autok/progress.txt
+  "Session start: New context window" | Add-Content .autok/progress.txt
+}
+Get-Content .autok/progress.txt
 
 # Git may not be initialized yet; record and continue if this fails.
 git log --oneline -20
@@ -132,11 +176,13 @@ for the application you're building.
 
 - Avoid `find`/`grep`/`findstr | find` mixtures on Windows (Git Bash vs cmd vs PowerShell differences can cause incorrect results or permission errors).
 - Prefer `search_files` to count occurrences like `"passes": false` instead of shell pipelines.
-- If `.autok/progress.txt` is missing, create it during Step 8.
+- **Always create `.autok/progress.txt` if missing** - initialize with current session timestamp.
 
-### STEP 2: VERIFICATION TEST (CRITICAL!)
+### STEP 2: SERVICES STARTUP
 
-**SERVICES STARTUP:**
+**BEFORE STARTUP, ENSURE ALL QUALITY CONTROL GATES ARE PASSED**
+
+If it exists, use `bun run smoke:qc`, otherwise perform standard linting, typechecking, and formatting with the project-appropriate commands.
 
 If `bun` is not available, or the project uses a different runtime, run the equivalent setup command for the stack (e.g. `node`/`npm` scripts) as specified by the repo. Document what you ran.
 
@@ -158,10 +204,33 @@ Use one of these **explicit detached launch wrappers** (recommended). They work 
 
 Do **not** run `bun run dev` in the foreground, and do **not** rely on `start /b bun run dev` unless you are definitely in cmd.exe.
 
+Once services attempt to start, review these (and any other relevant) logfiles immediately to look for any errors or warnings on startup:
+
+- `logs/frontend.log`
+- `logs/frontend.error.log`
+- `logs/backend.log`
+- `logs/backend.error.log`
+
+### STEP 3: VERIFICATION TEST (CRITICAL!)
+
 **MANDATORY BEFORE NEW WORK:**
 
 The previous session may have introduced bugs. Before implementing anything
 new, you MUST run verification tests.
+
+**ADDITIONAL SPEC COMPLIANCE VERIFICATION:**
+
+Before testing features, verify the implementation still aligns with the spec:
+
+1. **Core Functionality Check:**
+    - Verify the application type matches the spec (e.g., todo app vs user management)
+    - Check that all core models from the spec exist in the database schema
+    - Ensure primary features described in the spec are actually implemented
+
+2. **Feature Integrity Audit:**
+    - Review `.autok/feature_list.json` for accuracy
+    - If any features marked as "passes": true are NOT actually implemented, immediately mark them as "passes": false
+    - Document any discrepancies between the feature list and actual implementation
 
 Run 1-2 of the feature tests marked as `"passes": true` that are most core to the app's functionality to verify they still work.
 For example, if this were a chat app, you should perform a test that logs into the app, sends a message, and gets a response.
@@ -179,20 +248,41 @@ For example, if this were a chat app, you should perform a test that logs into t
     - Buttons too close together
     - Missing hover states
     - Console errors
+- **CRITICAL:** Also fix any spec-implementation mismatches discovered during the audit
 
-### STEP 3: CHOOSE ONE FEATURE TO IMPLEMENT
+### STEP 4: CHOOSE ONE FEATURE TO IMPLEMENT
 
 Look at .autok/feature_list.json and find the highest-priority feature with "passes": false.
+
+**CRITICAL: ACCURATE FEATURE ASSESSMENT**
+
+Before selecting a feature, verify the accuracy of the feature list:
+
+1. **Audit Feature Status:**
+    - For each feature marked "passes": true, verify it's actually implemented
+    - Use code analysis or quick UI checks to confirm functionality exists
+    - Immediately mark any falsely reported features as "passes": false
+
+2. **Prioritize Core Functionality:**
+    - Focus on features that are essential to the application's purpose
+    - If the spec defines a todo app, prioritize todo CRUD over authentication
+    - Ensure the application type matches the spec before implementing features
+
+3. **Implementation Verification:**
+    - Check that required models, routes, and components exist for the feature
+    - Verify database migrations have been applied
+    - Confirm frontend components are connected to backend functionality
 
 Focus on completing one feature perfectly and completing its testing steps in this session before moving on to other features.
 It's ok if you only complete one feature in this session, as there will be more sessions later that continue to make progress.
 
-### STEP 4: IMPLEMENT THE FEATURE
+### STEP 5: IMPLEMENT THE FEATURE
 
 Implement the chosen feature thoroughly:
 
 1. Write the code (frontend and/or backend as needed) using read_file, write_to_file, apply_diff
-    - After any `apply_diff` or `write_to_file`, immediately `read_file` the edited file to confirm the final content is correct (especially JSON).
+    - **CRITICAL:** After any `apply_diff` or `write_to_file`, immediately `read_file` the edited file to confirm the final content is correct (especially JSON).
+    - If the edit caused corruption, run `git checkout -- <file>` immediately and retry with a different approach.
 2. Test manually using browser automation (see Step 6)
 3. Fix any issues discovered
 4. Verify the feature works end-to-end
@@ -200,11 +290,18 @@ Implement the chosen feature thoroughly:
 --
 
 **BEFORE MOVING TO TESTING, ENSURE ALL QUALITY CONTROL GATES ARE PASSED**
-if exists, use `bun run smoke:qc`, otherwise perform standard linting, typechecking, and formatting with the project-appropriate commands.
+
+If it exists, use `bun run smoke:qc`, otherwise perform standard linting, typechecking, and formatting with the project-appropriate commands.
+
+**ADDITIONAL VERIFICATION:**
+
+- Run `git status` to ensure only expected files were modified
+- For schema changes, verify no duplicates were created
+- Check that the file structure remains intact after edits
 
 --
 
-### STEP 5: VERIFY WITH BROWSER AUTOMATION
+### STEP 6: VERIFY WITH BROWSER AUTOMATION
 
 **CRITICAL:** You MUST verify features through the actual UI.
 
@@ -229,7 +326,26 @@ Use `browser_action` to navigate and test through the UI:
 - Skip visual verification
 - Mark tests passing without thorough verification
 
-### STEP 6: UPDATE .autok/feature_list.json (CAREFULLY!)
+### STEP 7: UPDATE .autok/feature_list.json (CAREFULLY!)
+
+**IMPLEMENTATION VERIFICATION BEFORE UPDATING:**
+
+Before changing any "passes" field, you MUST verify the feature is fully implemented:
+
+1. **Code Verification:**
+    - Check all required files exist (models, routes, components)
+    - Verify database schema matches implementation
+    - Confirm frontend-backend integration is complete
+
+2. **Functional Testing:**
+    - Run the complete test workflow from the feature's steps
+    - Test edge cases and error conditions
+    - Verify the feature works in the actual UI, not just via API calls
+
+3. **Spec Alignment Check:**
+    - Confirm the implementation matches what the spec requires
+    - Verify no shortcuts or missing functionality
+    - Ensure the feature integrates properly with the rest of the app
 
 **YOU CAN ONLY MODIFY ONE FIELD: "passes"**
 
@@ -252,10 +368,16 @@ to:
 - Modify test steps
 - Combine or consolidate tests
 - Reorder tests
+- Mark a feature as passing without complete implementation
 
-**ONLY CHANGE "passes" FIELD AFTER VERIFICATION WITH SCREENSHOTS.**
+**ONLY CHANGE "passes" FIELD AFTER:**
 
-### STEP 7: COMMIT YOUR PROGRESS
+- Full implementation verification
+- End-to-end UI testing with screenshots
+- Confirmation the feature matches spec requirements
+- Integration testing with other features
+
+### STEP 8: COMMIT YOUR PROGRESS
 
 Make a descriptive git commit using execute_command:
 
@@ -272,9 +394,17 @@ If your shell does not support line continuations (`\`), run the same command as
 
 If `git` reports “not a git repository”, do not force commits. Document the state and proceed with feature work; initialize git only if the repo/spec expects it.
 
-### STEP 8: UPDATE PROGRESS NOTES
+### STEP 9: UPDATE PROGRESS NOTES
 
 Update `.autok/progress.txt` with:
+
+- Session summary header with date, start time, end time, and elapsed time:
+
+```txt
+-----------------------------------------------------------------------------------------------------------------------
+SESSION SUMMARY: {start_date} {start_time} - {end_time} ({elapsed_time})
+-----------------------------------------------------------------------------------------------------------------------
+```
 
 - What you accomplished this session
 - Which test(s) you completed
@@ -282,17 +412,29 @@ Update `.autok/progress.txt` with:
 - What should be worked on next
 - Current completion status (e.g., "45/200 tests passing")
 
-### STEP 9: END SESSION CLEANLY
+### STEP 10: END SESSION CLEANLY
 
 Before context fills up:
 
 1. Commit all working code using execute_command
 2. Update .autok/progress.txt
 3. Update .autok/feature_list.json if tests verified
-4. Ensure no uncommitted changes
-5. Leave app in working state (no broken features)
-6. If you started the services, stop them now.
-7. Use attempt_completion to present final results
+4. **FINAL FEATURE STATUS VALIDATION:**
+    - Perform a final audit of .autok/feature_list.json
+    - Verify all features marked "passes": true are actually implemented
+    - Confirm no features are falsely marked as passing
+    - Document any discrepancies found
+5. Ensure no uncommitted changes
+6. Leave app in working state (no broken features)
+7. If you started the services, stop them now.
+8. Use attempt_completion to present final results
+
+**CRITICAL: Feature Status Validation Requirements:**
+
+- Double-check that the application type matches the spec (e.g., todo app vs user dashboard)
+- Verify core functionality exists for all passing features
+- Run a quick smoke test on 1-2 "passing" features to confirm they work
+- If any false positives are found, mark them as "passes": false and document the issue
 
 ---
 
@@ -327,8 +469,16 @@ Test like a human user with mouse and keyboard. Don't take shortcuts that bypass
 - All features work end-to-end through the UI
 - Fast, responsive, professional
 
-**You have unlimited time.** Take as long as needed to get it right. The most important thing is that you
-leave the code base in a clean state before terminating the session (Step 9).
+**FILE INTEGRITY REMINDERS:**
+
+- **NEVER** skip post-edit verification - it's your safety net against data loss
+- **ALWAYS** use `git checkout -- <file>` if corruption is detected
+- **PREFER** `write_to_file` for schema files and large edits
+- **IMMEDIATELY** retry with a different approach if `apply_diff` fails
+- **DOCUMENT** any file corruption incidents in progress.txt
+
+You have unlimited time. Take as long as needed to get it right. The most important thing is that you
+leave the code base in a clean state before terminating the session (Step 10).
 
 ---
 
