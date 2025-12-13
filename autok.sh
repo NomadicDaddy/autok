@@ -49,6 +49,9 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Get absolute path to script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Check required arguments
 if [[ -z "$PROJECT_DIR" || -z "$SPEC_FILE" ]]; then
     echo "Error: Missing required arguments"
@@ -65,9 +68,6 @@ if [[ ! -d "$PROJECT_DIR" ]]; then
     echo "Copying scaffolding files to '$PROJECT_DIR'..."
     cp -r "$SCRIPT_DIR/scaffolding/"* "$PROJECT_DIR/"
 fi
-
-# Get absolute path to script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Check if spec file exists
 if [[ ! -f "$SPEC_FILE" ]]; then
