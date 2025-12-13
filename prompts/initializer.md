@@ -37,6 +37,27 @@ Kilo Code CLI provides a fixed set of tools. Only instruct yourself to use tools
 - Tasks: new_task → switch_mode → execute_command
 - Progress: update_todo_list → execute_command → update_todo_list
 
+### STEP 0: READ PROJECT-SPECIFIC INSTRUCTIONS (NEW MANDATORY STEP)
+
+**CRITICAL: Before proceeding, check for project-specific overrides.**
+
+1. **Check for project.txt:**
+    - Look for `.autok/project.txt` in the project directory
+    - If it exists, read it immediately as it contains project-specific instructions that override generic instructions
+    - These instructions may include:
+        - Custom scaffolding requirements
+        - Specific directory structures
+        - Special configuration needs
+        - Modified initialization steps
+
+2. **Apply Overrides:**
+    - Any instructions in project.txt take precedence over the generic steps in this prompt
+    - Document the overrides in your initial assessment
+    - If project.txt conflicts with this prompt, follow project.txt
+
+**Example:**
+If project.txt contains specific requirements for project structure or configuration, follow those instead of the generic initialization instructions.
+
 ### STEP 1: GET YOUR BEARINGS (MANDATORY)
 
 Start by orienting yourself:
@@ -47,7 +68,7 @@ Start by orienting yourself:
 
 Sanity check: after selecting the project root, `list_files` at that path should show expected entries (e.g. `.autok/`, `backend/`, `frontend/`, `scripts/`). If `list_files` shows `0 items` unexpectedly, stop and re-check the path (use `search_files` again or confirm with `execute_command`).
 
-### STEP 2: Create .autok/feature_list.json
+### STEP 3: Create .autok/feature_list.json
 
 Based on `.autok/spec.txt`, create a file called `.autok/feature_list.json` with 20 detailed end-to-end test cases. This file is the single source of truth for what needs to be built.
 
@@ -119,7 +140,7 @@ This ensures no functionality is missed.
 
 **WARNING:** Inaccurate feature tracking (marking unimplemented features as passing) leads to false confidence and prevents proper progress tracking. Always verify actual implementation before updating status.
 
-### STEP 2.5: Create .autok/scaffolding-manifest.json (NEW MANDATORY STEP)
+### STEP 3.5: Create .autok/scaffolding-manifest.json (NEW MANDATORY STEP)
 
 **CRITICAL: Create an explicit record of what scaffolding was set up.**
 
@@ -172,7 +193,7 @@ This manifest serves as the handoff document between sessions and ensures the co
 
 After creating the manifest, immediately `read_file` to verify it's valid JSON.
 
-### STEP 3: Create scripts/setup.ts
+### STEP 4: Create scripts/setup.ts
 
 If a `scripts/setup.ts` file already exists, skip this task.
 
@@ -188,7 +209,7 @@ After creating or editing `scripts/setup.ts`, immediately `read_file` it to conf
 
 **Important:** This initializer session must not start servers. The setup script should print the commands a later session can run to start the app.
 
-### STEP 4: Execute scripts/setup.ts
+### STEP 5: Execute scripts/setup.ts
 
 Run the setup script with the following parameters:
 
@@ -204,12 +225,12 @@ If `scripts/setup.ts` exists, run it:
 bun scripts/setup.ts --slug {slug} --name "{name}" --description "{description}" --frontend-port {frontendPort} --backend-port {backendPort}
 ```
 
-### STEP 5: Create Project Structure
+### STEP 6: Create Project Structure
 
 Set up the basic project structure based on what's specified in `.autok/spec.txt`.
 This typically includes directories for frontend, backend, and any other components mentioned in the spec that do not yet exist.
 
-### STEP 6: Create README.md
+### STEP 7: Create README.md
 
 Create a comprehensive README.md that includes:
 
@@ -218,7 +239,7 @@ Create a comprehensive README.md that includes:
 3. How to run the application
 4. Any other relevant information
 
-### STEP 7: Initialize Git
+### STEP 8: Initialize Git
 
 Create a git repository and make your first commit with:
 
@@ -230,7 +251,7 @@ Commit message: "Initial setup: .autok/feature_list.json, scripts/setup.ts, and 
 
 Note: Run git commands via `execute_command`, adapting to the current shell.
 
-### STEP 8: ENDING THIS SESSION
+### STEP 9: ENDING THIS SESSION
 
 **STOP IMMEDIATELY AFTER COMPLETING TASKS ABOVE**
 

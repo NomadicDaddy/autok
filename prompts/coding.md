@@ -73,7 +73,28 @@ git checkout -- <file-path>
 
 **WARNING:** Skipping verification steps leads to catastrophic data loss and session failure.
 
-### STEP 0: VALIDATE SPEC COMPLIANCE (NEW MANDATORY STEP)
+### STEP 0: READ PROJECT-SPECIFIC INSTRUCTIONS (NEW MANDATORY STEP)
+
+**CRITICAL: Before proceeding, check for project-specific overrides.**
+
+1. **Check for project.txt:**
+    - Look for `.autok/project.txt` in the project directory
+    - If it exists, read it immediately as it contains project-specific instructions that override generic instructions
+    - These instructions may include:
+        - Custom commands for starting/stopping services
+        - Project-specific testing procedures
+        - Special requirements or constraints
+        - Modified workflow steps
+
+2. **Apply Overrides:**
+    - Any instructions in project.txt take precedence over the generic steps in this prompt
+    - Document the overrides in your initial assessment
+    - If project.txt conflicts with this prompt, follow project.txt
+
+**Example:**
+If project.txt contains "Starting Services Detached (Non-Blocking): bun run dev:detached", use that command instead of the generic startup instructions.
+
+### STEP 1: VALIDATE SPEC COMPLIANCE (NEW MANDATORY STEP)
 
 **CRITICAL: Before proceeding, validate that the codebase structure matches the spec requirements.**
 
@@ -119,7 +140,7 @@ ls -la backend/src/routes/
 
 **If validation fails, document the issues and do NOT proceed with new features.**
 
-### STEP 0.5: ASSESS SCAFFOLDING COMPLETENESS (NEW MANDATORY STEP)
+### STEP 1.5: ASSESS SCAFFOLDING COMPLETENESS (NEW MANDATORY STEP)
 
 **CRITICAL: Before implementing features, validate that the scaffolding matches the specification.**
 
@@ -165,7 +186,7 @@ This prevents building features on an incomplete foundation (e.g., trying to imp
 - ✗ Todos.tsx component missing
 - BLOCKER: Cannot implement todo features without Todo model
 
-### STEP 1: GET YOUR BEARINGS (MANDATORY)
+### STEP 2: GET YOUR BEARINGS (MANDATORY)
 
 Start by orienting yourself:
 
@@ -234,7 +255,7 @@ for the application you're building.
 - Prefer `search_files` to count occurrences like `"passes": false` instead of shell pipelines.
 - **Always create `.autok/progress.txt` if missing** - initialize with current session timestamp.
 
-### STEP 2: SERVICES STARTUP
+### STEP 3: SERVICES STARTUP
 
 **BEFORE STARTUP, ENSURE ALL QUALITY CONTROL GATES ARE PASSED**
 
@@ -267,7 +288,7 @@ Once services attempt to start, review these (and any other relevant) logfiles i
 - `logs/backend.log`
 - `logs/backend.error.log`
 
-### STEP 3: VERIFICATION TEST (CRITICAL!)
+### STEP 4: VERIFICATION TEST (CRITICAL!)
 
 **MANDATORY BEFORE NEW WORK:**
 
@@ -306,7 +327,7 @@ For example, if this were a chat app, you should perform a test that logs into t
     - Console errors
 - **CRITICAL:** Also fix any spec-implementation mismatches discovered during the audit
 
-### STEP 4: CHOOSE ONE FEATURE TO IMPLEMENT
+### STEP 5: CHOOSE ONE FEATURE TO IMPLEMENT
 
 Look at .autok/feature_list.json and find the highest-priority feature with "passes": false.
 
@@ -332,7 +353,7 @@ Before selecting a feature, verify the accuracy of the feature list:
 Focus on completing one feature perfectly and completing its testing steps in this session before moving on to other features.
 It's ok if you only complete one feature in this session, as there will be more sessions later that continue to make progress.
 
-### STEP 5: IMPLEMENT THE FEATURE
+### STEP 6: IMPLEMENT THE FEATURE
 
 Implement the chosen feature thoroughly:
 
@@ -357,7 +378,7 @@ If it exists, use `bun run smoke:qc`, otherwise perform standard linting, typech
 
 --
 
-### STEP 6: VERIFY WITH BROWSER AUTOMATION
+### STEP 7: VERIFY WITH BROWSER AUTOMATION
 
 **CRITICAL:** You MUST verify features through the actual UI.
 
@@ -382,7 +403,7 @@ Use `browser_action` to navigate and test through the UI:
 - Skip visual verification
 - Mark tests passing without thorough verification
 
-### STEP 7: UPDATE .autok/feature_list.json (CAREFULLY!)
+### STEP 8: UPDATE .autok/feature_list.json (CAREFULLY!)
 
 **IMPLEMENTATION VERIFICATION BEFORE UPDATING:**
 
@@ -433,7 +454,7 @@ to:
 - Confirmation the feature matches spec requirements
 - Integration testing with other features
 
-### STEP 8: COMMIT YOUR PROGRESS
+### STEP 9: COMMIT YOUR PROGRESS
 
 Make a descriptive git commit using execute_command:
 
@@ -450,7 +471,7 @@ If your shell does not support line continuations (`\`), run the same command as
 
 If `git` reports “not a git repository”, do not force commits. Document the state and proceed with feature work; initialize git only if the repo/spec expects it.
 
-### STEP 9: UPDATE PROGRESS NOTES
+### STEP 10: UPDATE PROGRESS NOTES
 
 Update `.autok/progress.txt` with:
 
@@ -468,7 +489,7 @@ SESSION SUMMARY: {start_date} {start_time} - {end_time} ({elapsed_time})
 - What should be worked on next
 - Current completion status (e.g., "45/200 tests passing")
 
-### STEP 10: END SESSION CLEANLY
+### STEP 11: END SESSION CLEANLY
 
 Before context fills up:
 
