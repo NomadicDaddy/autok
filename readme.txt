@@ -2,9 +2,13 @@
 
 A shell script that orchestrates autonomous development sessions using Kilocode AI. AutoK supports both bash (autok.sh) and PowerShell (autok.ps1) environments.
 
+Inspired by Anthropic's Claude Quickstarts (https://github.com/anthropics/claude-quickstarts) - Autonomous Coding Agent Demo (https://github.com/anthropics/claude-quickstarts/tree/main/autonomous-coding)
+
+And an improved version (https://github.com/NomadicDaddy/autonomous_agent_demo).
+
 ## Specifications
 
-AutoK uses project specifications in Markdown format aligned with Spernakit template standards. All specs are located in the `specs/` directory with `.md` extensions.
+AutoK uses project specifications in xml-like format. All specs are located in the `specs/` directory with `.txt` extensions.
 
 ## Usage
 
