@@ -177,8 +177,8 @@ run_kilocode_prompt() {
 find_or_create_metadata_dir() {
     local dir="$1"
     # Check for existing directories in order of preference
-    if [[ -d "$dir/.auto" ]]; then
-        echo "$dir/.auto"
+    if [[ -d "$dir/.aidd" ]]; then
+        echo "$dir/.aidd"
         return
     fi
     if [[ -d "$dir/.autok" ]]; then
@@ -189,9 +189,9 @@ find_or_create_metadata_dir() {
         echo "$dir/.automaker"
         return
     fi
-    # Create .auto as default
-    mkdir -p "$dir/.auto"
-    echo "$dir/.auto"
+    # Create .aidd as default
+    mkdir -p "$dir/.aidd"
+    echo "$dir/.aidd"
 }
 
 # Function to check if directory is an existing codebase
@@ -199,9 +199,10 @@ is_existing_codebase() {
     local dir="$1"
     # Check if directory exists and has files (excluding .git and metadata directories)
     if [[ -d "$dir" ]]; then
-        # Find files/directories excluding .git, .auto, .autok, .automaker, and their contents
+        # Find files/directories excluding .git, .aidd, .auto, .autok, .automaker, and their contents
         local has_files=$(find "$dir" -mindepth 1 -maxdepth 1 \
             ! -name '.git' \
+            ! -name '.aidd' \
             ! -name '.auto' \
             ! -name '.autok' \
             ! -name '.automaker' \

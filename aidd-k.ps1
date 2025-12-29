@@ -71,9 +71,9 @@ function Find-OrCreateMetadataDir {
 	)
 
 	# Check for existing directories in order of preference
-	$autoDir = Join-Path $Directory '.auto'
-	if (Test-Path $autoDir -PathType Container) {
-		return $autoDir
+	$aiddDir = Join-Path $Directory '.aidd'
+	if (Test-Path $aiddDir -PathType Container) {
+		return $aiddDir
 	}
 
 	$autokDir = Join-Path $Directory '.autok'
@@ -86,9 +86,9 @@ function Find-OrCreateMetadataDir {
 		return $automakerDir
 	}
 
-	# Create .auto as default
-	New-Item -Path $autoDir -ItemType Directory -Force | Out-Null
-	return $autoDir
+	# Create .aidd as default
+	New-Item -Path $aiddDir -ItemType Directory -Force | Out-Null
+	return $aiddDir
 }
 
 # Function to check if directory is an existing codebase
@@ -101,7 +101,7 @@ function Test-ExistingCodebase {
 	if (Test-Path $Directory -PathType Container) {
 		# Check if directory has files excluding common ignored directories
 		$hasFiles = Get-ChildItem -Path $Directory -Force | Where-Object {
-			$_.Name -notin @('.git', '.auto', '.autok', '.automaker', '.DS_Store', 'node_modules', '.vscode', '.idea')
+			$_.Name -notin @('.git', '.aidd', '.auto', '.autok', '.automaker', '.DS_Store', 'node_modules', '.vscode', '.idea')
 		} | Measure-Object | Select-Object -ExpandProperty Count
 
 		return $hasFiles -gt 0
