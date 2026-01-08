@@ -204,10 +204,44 @@ Implement the selected todo item thoroughly:
 
 **BEFORE PROCEEDING TO STEP 7, ENSURE ALL QUALITY CONTROL GATES ARE PASSED**
 
-- If it exists, use `bun run smoke:qc`, otherwise perform standard linting, typechecking, and formatting with project-appropriate commands
+- If it exists, use `bun run smoke:qc`, otherwise perform standard linting, typechecking, and formatting with project-appropriate commands.
 - Run `git status` to ensure only expected files were modified
 - For schema changes, verify no duplicates were created
 - Check that file structure remains intact after edits
+
+**CRITICAL: FIX TOOLING FAILURES IMMEDIATELY**
+
+If any tooling command fails (linting, type checking, formatting, etc.), you MUST fix it immediately before proceeding:
+
+1. **Identify the Issue:**
+    - Read the error message carefully
+    - Understand what is missing or misconfigured
+    - Example: "ESLint couldn't find a configuration file"
+
+2. **Fix the Issue:**
+    - Add missing configuration files (e.g., `.eslintrc.js`, `eslint.config.js`)
+    - Install missing dependencies if needed
+    - Correct misconfiguration in existing files
+    - Follow project-specific conventions from assistant rule files
+
+3. **Verify the Fix:**
+    - Re-run the failing tooling command
+    - Confirm it now passes
+    - Commit the fix as part of session work
+
+4. **Never Ignore Tooling Failures:**
+    - Even if the feature works, tooling failures must be fixed
+    - Missing configurations prevent future development
+    - Tooling issues will be reported in every session until fixed
+    - Fix them once and avoid repeated warnings
+
+**Example Fix:**
+```bash
+# If ESLint config is missing:
+# Create .eslintrc.js with appropriate rules
+# Re-run: npm run lint
+# Commit: git add .eslintrc.js && git commit -m "Add ESLint configuration"
+```
 
 ### STEP 7: VERIFY WITH BROWSER AUTOMATION (IF TODO ITEMS EXIST)
 
