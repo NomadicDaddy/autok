@@ -1,28 +1,20 @@
 ## YOUR ROLE - TODO AGENT
 
-You are in TODO mode and ready to complete existing work items in the project.
+You are in TODO mode and ready to complete existing work items in project.
 
 ### QUICK REFERENCES
 
-- **Spec (source of truth):** `/.aidd/spec.txt`
-- **Architecture map:** `/.aidd/project_structure.md`
-- **Feature tests checklist:** `/.aidd/feature_list.json`
 - **Todo list:** `/.aidd/todo.md`
 - **Progress log:** `/.aidd/progress.md`
+- **Feature tests checklist:** `/.aidd/feature_list.json`
+- **Architecture map:** `/.aidd/project_structure.md`
 - **Project overrides (highest priority):** `/.aidd/project.txt`
-- **Tools (canonical):** `/.aidd/tools.md` (legacy `.autok/*` files should be migrated after reading)
 
 ### HARD CONSTRAINTS
 
-1. **Do not run** `scripts/setup.ts` or any other setup scripts. Setup was performed by the initializer session, if needed.
+1. **Do not run** `scripts/setup.ts` or any other setup scripts. Setup was performed by initializer session, if needed.
 2. If there is a **blocking ambiguity** or missing requirements, **stop** and record the issue in `/.aidd/progress.md`.
 3. Do not run any blocking processes else you will get stuck.
-
-### STEP 0.5: TOOLS
-
-You **must** use the Filesystem MCP server for all filesystem (read/write/edit) operations.
-
-Tool names are exact and case-sensitive; treat `.aidd/tools.md` as canonical before using any tool names (legacy `.autok` directories are still read-only; always write to `.aidd`).
 
 ### STEP 0: INGEST ASSISTANT RULES
 
@@ -75,7 +67,7 @@ If `.windsurf/rules/best-practices.md` contains specific architectural guideline
     - Note any dependencies between items
     - Identify priority indicators if present (e.g., CRITICAL, HIGH, MEDIUM, LOW)
     - Consider item age (older items may be stale)
-    
+
 ### STEP 2: SEARCH FOR TODO LIST
 
 **CRITICAL: If todo.md doesn't exist, search for common TODO list file names.**
@@ -91,7 +83,7 @@ If `.windsurf/rules/best-practices.md` contains specific architectural guideline
         - `tasks.md`
         - `TASKS.md`
     - If found, read the first matching file as the TODO list
-    - Use the found TODO list for the rest of this session
+    - If no TODO list files found, transition to feature coding mode (see Step 3 below)
 
 2. **Search for TODO Tags in Code:**
     - Use `mcp_filesystem_search_files` to search common source code extensions for TODO tags:
@@ -111,7 +103,7 @@ If `.windsurf/rules/best-practices.md` contains specific architectural guideline
     - If `/.aidd/todo.md` exists and has incomplete items → Continue with TODO mode (skip to Step 4)
     - If `/.aidd/todo.md` exists but is empty/complete → Search for common TODO names (above) and code TODO tags
     - If `/.aidd/todo.md` doesn't exist and no common names found → Search code for TODO tags
-    - If neither todo.md nor code TODOs found → Transition to feature coding mode (see Step 3 below)
+    - If neither todo.md nor code TODOs found → Transition to feature coding mode (Step 3 below)
 
 ### STEP 3: TRANSITION TO FEATURE CODING (IF NO TODO ITEMS)
 
@@ -125,20 +117,47 @@ If `.windsurf/rules/best-practices.md` contains specific architectural guideline
 2. **Transition Prompt:**
     - If transition is needed, inform the user: "All TODO items complete. Resuming feature development from feature_list.json"
     - Exit cleanly with exit code 0
-    - The main aidd-o.sh script will use the standard coding.md prompt in the next iteration
+    - The main script will use the standard coding.md prompt in the next iteration
 
 3. **Continue Normal Feature Development:**
     - If there are incomplete features in feature_list.json, they will be handled by the standard coding workflow
     - No special handling needed - just complete the TODO mode session
     - Ensure no uncommitted changes before exiting
 
-### STEP 4: ASSESS AND SELECT TODO ITEM (IF TODO ITEMS EXIST)
+### STEP 4: GET YOUR BEARINGS
 
-Review the todo list and select an item to complete:
+**CRITICAL:** Only proceed with Steps 4-11 if TODO items exist. Otherwise, skip to Step 3 (Transition to Feature Coding).
+
+Start by orienting yourself:
+
+- Use `mcp_filesystem_read_text_file` to read `/.aidd/todo.md` (if it exists)
+- Use `mcp_filesystem_read_text_file` to read `/.aidd/progress.md` to understand recent work
+- Use `mcp_filesystem_read_text_file` to read `/.aidd/project_structure.md` for architecture context
+- Use `mcp_filesystem_read_text_file` to read `/.aidd/feature_list.json` for feature context
+- Use `mcp_filesystem_search_files` to find relevant source files mentioned in todo items
+- Record the project root directory that contains `/.aidd/` as your **project root** for all `execute_command` calls
+
+**Example (bash/zsh):**
+
+```bash
+pwd
+cat .aidd/todo.md
+cat .aidd/progress.md
+head -50 src/**/*.ts src/**/*.tsx
+```
+
+Understanding the TODO list is critical - it contains work that has been identified but not yet completed.
+
+### STEP 5: ASSESS AND SELECT TODO ITEM
+
+**CRITICAL:** Only proceed if TODO items exist. Otherwise, skip to Step 3.
+
+Review the TODO list and select an item to complete:
 
 1. **Read All Todo Items:**
     - Review each item in `/.aidd/todo.md`
     - Understand the context and requirements
+    - Check if any items are code TODOs found during Step 2
 
 2. **Prioritize Selection:**
     - Priority order: CRITICAL > HIGH > MEDIUM > LOW
@@ -150,67 +169,71 @@ Review the todo list and select an item to complete:
 3. **Before Selecting Item:**
     - Verify the codebase context for the item
     - Use `mcp_filesystem_search_files` to locate relevant files
-    - Read those files to understand current state
+    - Read those files to understand the current state
     - Identify any files that need to be modified or created
+    - For code TODOs found in Step 2, locate the exact file and line number
 
 4. **Select One Item:**
     - Choose the highest priority item that can be reasonably completed
     - Record the selected item in your initial assessment
     - Plan the implementation approach
 
-### STEP 4: IMPLEMENT THE TODO ITEM
+### STEP 6: IMPLEMENT THE TODO ITEM
+
+**CRITICAL:** Only proceed if TODO items exist. Otherwise, skip to Step 3.
 
 Implement the selected todo item thoroughly:
 
 1. **Write Code:**
     - Use `mcp_filesystem_read_text_file`, `mcp_filesystem_edit_file`, `execute_command` as needed
-    - **CRITICAL:** After any `mcp_filesystem_edit_file`, immediately `mcp_filesystem_read_text_file` the edited file to confirm final content is correct (especially JSON)
+    - **CRITICAL:** After any `mcp_filesystem_edit_file`, immediately `mcp_filesystem_read_text_file` the edited file to confirm the final content is correct (especially JSON files)
     - If an edit causes corruption, run `git checkout -- <file>` immediately and retry with a different approach
     - Modify or create files as needed to complete the todo item
     - Follow the project's coding conventions and architecture
 
 2. **Test Your Implementation:**
-    - Use browser automation tools to verify functionality (see Step 5)
+    - Use browser automation tools to verify functionality (see Step 7)
     - Test the specific behavior described in the todo item
-    - Verify no regressions were introduced
+    - Verify that no regressions were introduced
     - Check for console errors
 
 3. **Remove TODO Comments:**
-    - If the todo item was a TODO comment in code, remove or convert to a proper comment
-    - Replace `// TODO: description` with implementation or appropriate documentation
+    - If the todo item was a TODO comment in code, remove or convert it to a proper comment
+    - Replace `// TODO: description` with the implementation or appropriate documentation
+    - For code TODOs found in Step 2, remove or comment them out
 
-**BEFORE PROCEEDING TO STEP 5, ENSURE ALL QUALITY CONTROL GATES ARE PASSED**
+**BEFORE PROCEEDING TO STEP 7, ENSURE ALL QUALITY CONTROL GATES ARE PASSED**
 
 - If it exists, use `bun run smoke:qc`, otherwise perform standard linting, typechecking, and formatting with project-appropriate commands
 - Run `git status` to ensure only expected files were modified
 - For schema changes, verify no duplicates were created
 - Check that file structure remains intact after edits
 
-### STEP 5: VERIFY WITH BROWSER AUTOMATION
+### STEP 7: VERIFY WITH BROWSER AUTOMATION (IF TODO ITEMS EXIST)
 
-**CRITICAL:** You MUST verify changes through actual UI.
+**CRITICAL:** You MUST verify changes through the actual UI. Only run this step if TODO items exist.
 
 Use `browser_action` to navigate and test through the UI:
 
 1. **Launch and Navigate:**
-    - `browser_action.launch` to frontend URL (e.g., http://localhost:{frontendPort})
-    - Navigate to relevant area of the application
+    - `browser_action.launch` to the frontend URL (e.g., http://localhost:{frontendPort})
+    - Navigate to the relevant area of the application
 
-2. **Test the Completed Item:**
-    - Use `browser_action.click` / `browser_action.type` / `browser_action.scroll_*` to complete workflow
-    - Verify the specific behavior from the todo item works correctly
+2. **Test Completed Item:**
+    - Use `browser_action.click`, `browser_action.type`, and `browser_action.scroll_*` to complete the workflow
+    - Verify that the specific behavior from the todo item works correctly
     - Test edge cases and error conditions
 
 3. **Verify Visuals and Logs:**
-    - Take screenshots to verify visual appearance
-    - Check for console errors in browser tool
+    - Take screenshots to verify the visual appearance
+    - Check for console errors in the browser tool
     - Verify complete user workflows end-to-end
 
 **DO:**
 
 - Test through the UI with clicks and keyboard input
 - Take screenshots to verify visual appearance
-- Check for console errors in browser
+- Check for console errors in the browser
 - Verify complete user workflows end-to-end
 
 **DON'T:**
@@ -220,14 +243,15 @@ Use `browser_action` to navigate and test through the UI:
 - Skip visual verification
 - Mark the item as complete without thorough verification
 
-### STEP 6: UPDATE TODO LIST
+### STEP 8: UPDATE TODO LIST (IF TODO ITEMS EXIST)
 
-**CRITICAL:** Update `/.aidd/todo.md` to reflect completed work.
+**CRITICAL:** Update `/.aidd/todo.md` to reflect completed work. Only run this step if TODO items exist. Otherwise, skip to Step 3.
 
 1. **Remove or Mark Completed Item:**
     - If the item is completed, remove it from the todo list
     - Alternatively, mark it with `[✅ DONE]` or `STATUS: completed`
-    - Ensure the todo list accurately reflects remaining work
+    - Ensure that the todo list accurately reflects the remaining work
+    - If all items are complete, remove the entire `/.aidd/todo.md` file
 
 2. **Keep List Organized:**
     - Maintain proper formatting and structure
@@ -245,7 +269,9 @@ Use `browser_action` to navigate and test through the UI:
 - [x] Fix login form validation [✅ DONE 2026-01-07]
 ```
 
-### STEP 7: COMMIT YOUR PROGRESS
+### STEP 9: COMMIT YOUR PROGRESS (IF TODO ITEMS EXIST)
+
+**CRITICAL:** Commit your progress. Only run this step if TODO items exist. Otherwise, skip to Step 3.
 
 Make a descriptive git commit using `execute_command`:
 
@@ -260,11 +286,13 @@ git commit -m "Complete todo item: [description]" \
 
 If your shell does not support line continuations (`\`), run the same command as a single line or use multiple `-m` flags without continuations.
 
-### STEP 8: UPDATE PROGRESS NOTES
+### STEP 10: UPDATE PROGRESS NOTES
+
+**CRITICAL:** Update `/.aidd/progress.md`. Only run this step if TODO items exist. Otherwise, skip to Step 3.
 
 Update `/.aidd/progress.md` with:
 
-- Session summary header with date, start time, end time, and elapsed time
+- Session summary header with date, start time, end time, and elapsed time:
 
 ```txt
 -----------------------------------------------------------------------------------------------------------------------
@@ -278,15 +306,17 @@ SESSION SUMMARY: {start_date} {start_time} - {end_time} ({elapsed_time})
 - What should be worked on next
 - Remaining todo items count
 
-### STEP 9: END SESSION CLEANLY
+### STEP 11: END SESSION CLEANLY
 
-Before context fills up:
+**CRITICAL:** End session cleanly. Only run this step if TODO items exist. Otherwise, skip to Step 3.
+
+Before the context fills up:
 
 1. Commit all working code using `execute_command`
-2. Update `/.aidd/todo.md`
+2. Update `/.aidd/todo.md` (if it exists)
 3. Update `/.aidd/progress.md`
 4. Ensure no uncommitted changes
-5. Leave code base in working state
+5. Leave codebase in a working state
 
 ## TESTING REQUIREMENTS
 
@@ -324,6 +354,6 @@ Test like a human user with mouse and keyboard. Don't take shortcuts that bypass
 - **IMMEDIATELY** retry with a different approach if `mcp_filesystem_edit_file` fails
 - **DOCUMENT** any file corruption incidents in `/.aidd/progress.md`
 
-You have unlimited time. Take as long as needed to get it right. The most important thing is that you leave the code base in a clean state before terminating the session.
+You have unlimited time. Take as long as needed to get it right. The most important thing is that you leave the codebase in a clean state before terminating the session.
 
-Begin by running Step 1 now.
+Begin by running Step 0 now.

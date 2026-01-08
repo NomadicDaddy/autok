@@ -29,16 +29,18 @@ param(
 	[string]$CodeModel = '',
 
 	[Parameter(Mandatory = $false)]
-	[switch]$NoClean
+	[switch]$NoClean,
 
-	,
 	[Parameter(Mandatory = $false)]
-	[int]$QuitOnAbort = 0
+	[int]$QuitOnAbort = 0,
+
+	[Parameter(Mandatory = $false)]
+	[switch]$ContinueOnTimeout
 )
 
 # Show help if requested
 if ($Help) {
-	Write-Host 'Usage: aidd-k.ps1 -ProjectDir <dir> [-Spec <file>] [-MaxIterations <num>] [-Timeout <seconds>] [-IdleTimeout <seconds>] [-Model <model>] [-InitModel <model>] [-CodeModel <model>] [-NoClean] [-QuitOnAbort <num>] [-Help]'
+	Write-Host 'Usage: aidd-k.ps1 -ProjectDir <dir> [-Spec <file>] [-MaxIterations <num>] [-Timeout <seconds>] [-IdleTimeout <seconds>] [-Model <model>] [-InitModel <model>] [-CodeModel <model>] [-NoClean] [-QuitOnAbort <num>] [-ContinueOnTimeout] [-Help]'
 	Write-Host ''
 	Write-Host 'Options:'
 	Write-Host '  -ProjectDir       Project directory (required)'
@@ -51,6 +53,7 @@ if ($Help) {
 	Write-Host '  -CodeModel        Model to use for coding prompt (optional, overrides -Model)'
 	Write-Host '  -NoClean          Skip log cleaning on exit (optional)'
 	Write-Host '  -QuitOnAbort      Quit after N consecutive failures (optional, default: 0=continue indefinitely)'
+	Write-Host '  -ContinueOnTimeout Continue to next iteration if kilocode times out (exit 124) instead of aborting (optional)'
 	Write-Host '  -Help             Show this help message'
 	Write-Host ''
 	exit 0
@@ -382,13 +385,18 @@ try {
 				}
 
 				if ($kilocodeExitCode -ne 0) {
-					$ConsecutiveFailures++
-					Write-Error "aidd-k.ps1: kilocode failed (exit=$kilocodeExitCode); this is failure #$ConsecutiveFailures."
-					if ($QuitOnAbort -gt 0 -and $ConsecutiveFailures -ge $QuitOnAbort) {
-						Write-Error "aidd-k.ps1: reached failure threshold ($QuitOnAbort); quitting."
-						exit $kilocodeExitCode
+					# Don't count timeout (exit 124) as a failure if ContinueOnTimeout is set
+					if ($kilocodeExitCode -eq 124 -and $ContinueOnTimeout) {
+						Write-Warning "aidd-k.ps1: timeout detected on iteration $i, continuing to next iteration..."
+					} else {
+						$ConsecutiveFailures++
+						Write-Error "aidd-k.ps1: kilocode failed (exit=$kilocodeExitCode); this is failure #$ConsecutiveFailures."
+						if ($QuitOnAbort -gt 0 -and $ConsecutiveFailures -ge $QuitOnAbort) {
+							Write-Error "aidd-k.ps1: reached failure threshold ($QuitOnAbort); quitting."
+							exit $kilocodeExitCode
+						}
+						Write-Error "aidd-k.ps1: continuing to next iteration (threshold: $QuitOnAbort)."
 					}
-					Write-Error "aidd-k.ps1: continuing to next iteration (threshold: $QuitOnAbort)."
 				} else {
 					$ConsecutiveFailures = 0
 				}
@@ -449,13 +457,18 @@ try {
 				}
 
 				if ($kilocodeExitCode -ne 0) {
-					$ConsecutiveFailures++
-					Write-Error "aidd-k.ps1: kilocode failed (exit=$kilocodeExitCode); this is failure #$ConsecutiveFailures."
-					if ($QuitOnAbort -gt 0 -and $ConsecutiveFailures -ge $QuitOnAbort) {
-						Write-Error "aidd-k.ps1: reached failure threshold ($QuitOnAbort); quitting."
-						exit $kilocodeExitCode
+					# Don't count timeout (exit 124) as a failure if ContinueOnTimeout is set
+					if ($kilocodeExitCode -eq 124 -and $ContinueOnTimeout) {
+						Write-Warning "aidd-k.ps1: timeout detected on iteration $i, continuing to next iteration..."
+					} else {
+						$ConsecutiveFailures++
+						Write-Error "aidd-k.ps1: kilocode failed (exit=$kilocodeExitCode); this is failure #$ConsecutiveFailures."
+						if ($QuitOnAbort -gt 0 -and $ConsecutiveFailures -ge $QuitOnAbort) {
+							Write-Error "aidd-k.ps1: reached failure threshold ($QuitOnAbort); quitting."
+							exit $kilocodeExitCode
+						}
+						Write-Error "aidd-k.ps1: continuing to next iteration (threshold: $QuitOnAbort)."
 					}
-					Write-Error "aidd-k.ps1: continuing to next iteration (threshold: $QuitOnAbort)."
 				} else {
 					$ConsecutiveFailures = 0
 				}

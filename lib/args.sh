@@ -20,7 +20,9 @@ export TIMEOUT=""
 export IDLE_TIMEOUT=""
 export NO_CLEAN=false
 export QUIT_ON_ABORT="0"
+export CONTINUE_ON_TIMEOUT=false
 export SHOW_FEATURE_LIST=false
+export TODO_MODE=false
 
 # Effective model values (computed after parsing)
 export INIT_MODEL_EFFECTIVE=""
@@ -38,7 +40,7 @@ Usage: $0 [OPTIONS]
 aidd-k - AI Development Driver: KiloCode
 
 OPTIONS:
-    --project-dir DIR       Project directory (required unless --feature-list is specified)
+    --project-dir DIR       Project directory (required unless --feature-list or --todo is specified)
     --spec FILE             Specification file (optional for existing codebases, required for new projects)
     --max-iterations N      Maximum iterations (optional, unlimited if not specified)
     --timeout N             Timeout in seconds (optional, default: 600)
@@ -48,7 +50,9 @@ OPTIONS:
     --code-model MODEL      Model for coding prompts (optional, overrides --model)
     --no-clean              Skip log cleaning on exit (optional)
     --quit-on-abort N       Quit after N consecutive failures (optional, default: 0=continue indefinitely)
+    --continue-on-timeout   Continue to next iteration if KiloCode times out (exit 124) instead of aborting (optional)
     --feature-list          Display project feature list status and exit (optional)
+    --todo                  Use TODO mode: look for and complete todo items instead of new features (optional)
     --help                  Show this help message
 
 EXAMPLES:
@@ -56,6 +60,7 @@ EXAMPLES:
     $0 --project-dir ./myproject --model gpt-4 --max-iterations 5
     $0 --project-dir ./myproject --init-model claude --code-model gpt-4 --no-clean
     $0 --project-dir ./myproject --feature-list
+    $0 --project-dir ./myproject --todo
 
 For more information, visit: https://github.com/example/aidd-k
 EOF
@@ -107,8 +112,16 @@ parse_args() {
                 QUIT_ON_ABORT="$2"
                 shift 2
                 ;;
+            --continue-on-timeout)
+                CONTINUE_ON_TIMEOUT=true
+                shift
+                ;;
             --feature-list)
                 SHOW_FEATURE_LIST=true
+                shift
+                ;;
+            --todo)
+                TODO_MODE=true
                 shift
                 ;;
             -h|--help)
@@ -128,8 +141,8 @@ parse_args() {
 # Validate Required Arguments
 # -----------------------------------------------------------------------------
 validate_args() {
-    # Check required --project-dir argument (unless --feature-list is specified)
-    if [[ "$SHOW_FEATURE_LIST" != true && -z "$PROJECT_DIR" ]]; then
+    # Check required --project-dir argument (unless --feature-list or --todo is specified)
+    if [[ "$SHOW_FEATURE_LIST" != true && "$TODO_MODE" != true && -z "$PROJECT_DIR" ]]; then
         log_error "Missing required argument --project-dir"
         log_info "Use --help for usage information"
         return $EXIT_INVALID_ARGS
@@ -310,6 +323,10 @@ init_args() {
         show_feature_list "$PROJECT_DIR"
         exit $EXIT_SUCCESS
     fi
+    
+    # Handle --todo option (export mode flag for use by main script)
+    # TODO_MODE is handled by determine_prompt() in lib/iteration.sh
+    # We just need to pass through and let iteration.sh handle it
     
     return 0
 }

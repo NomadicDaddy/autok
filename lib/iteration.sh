@@ -132,6 +132,12 @@ should_continue() {
 handle_failure() {
     local exit_code="$1"
     
+    # Don't count timeout (exit 124) as a failure if CONTINUE_ON_TIMEOUT is set
+    if [[ $exit_code -eq 124 && $CONTINUE_ON_TIMEOUT == true ]]; then
+        log_warn "Timeout detected (exit=$exit_code), continuing to next iteration..."
+        return 0
+    fi
+    
     # Increment failure counter
     ((CONSECUTIVE_FAILURES++))
     log_warn "KiloCode failed (exit=$exit_code); this is failure #$CONSECUTIVE_FAILURES"
@@ -190,6 +196,22 @@ determine_prompt() {
     local script_dir="$2"
     local prompt_path=""
     local phase=""
+    local todo_check_path="$METADATA_DIR/todo.md"
+    
+    # Check for TODO mode first
+    if [[ "$TODO_MODE" == true ]]; then
+        # Check if todo.md exists
+        if [[ -f "$todo_check_path" ]]; then
+            log_info "Using todo.md to complete existing work items"
+            prompt_path="$script_dir/prompts/todo.md"
+            phase="$PHASE_CODING"
+            echo "$prompt_path|$phase"
+            return 0
+        else
+            log_error "No todo.md found in project directory"
+            return 1
+        fi
+    fi
     
     # Check if onboarding is complete
     if check_onboarding_status; then
@@ -362,8 +384,13 @@ run_iteration_cycle() {
             run_iteration "$iteration_num" "" "$script_dir"
             exit_code=$?
             
+            # Don't abort on timeout (exit 124) if CONTINUE_ON_TIMEOUT is set
             if [[ $exit_code -ne 0 ]]; then
-                exit "$exit_code"
+                if [[ $exit_code -eq 124 && $CONTINUE_ON_TIMEOUT == true ]]; then
+                    log_warn "Timeout detected on iteration $iteration_num, continuing to next iteration..."
+                else
+                    exit "$exit_code"
+                fi
             fi
             
             ((iteration_num++))
@@ -375,8 +402,13 @@ run_iteration_cycle() {
             run_iteration "$iteration_num" "$max_iterations" "$script_dir"
             exit_code=$?
             
+            # Don't abort on timeout (exit 124) if CONTINUE_ON_TIMEOUT is set
             if [[ $exit_code -ne 0 ]]; then
-                exit "$exit_code"
+                if [[ $exit_code -eq 124 && $CONTINUE_ON_TIMEOUT == true ]]; then
+                    log_warn "Timeout detected on iteration $iteration_num, continuing to next iteration..."
+                else
+                    exit "$exit_code"
+                fi
             fi
         done
     fi
